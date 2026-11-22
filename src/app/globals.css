@@ -1,26 +1,100 @@
 @import "tailwindcss";
 
+@theme {
+  --color-obsidian: #08090c;
+  --color-obsidian-card: #0f1117;
+  --color-obsidian-subtle: #161922;
+  --color-yoru-accent: #6366f1;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #08090c;
+  --foreground: #f8fafc;
+  --card: #0f1117;
+  --card-foreground: #f8fafc;
+  --accent: #6366f1;
+  --accent-foreground: #ffffff;
+  --muted: #1e2230;
+  --muted-foreground: #94a3b8;
+  --border: rgba(255, 255, 255, 0.1);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: dark;
+  background-color: #08090c;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #08090c;
+  color: #f8fafc;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  letter-spacing: -0.02em;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+/* Subtitle VTT / Cue Styling */
+video::cue {
+  background-color: rgba(8, 9, 12, 0.78);
+  color: #ffffff;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.85);
+  border-radius: 6px;
+  padding: 2px 8px;
+}
+
+.sub-size-sm video::cue {
+  font-size: 14px;
+}
+
+.sub-size-md video::cue {
+  font-size: 18px;
+}
+
+.sub-size-lg video::cue {
+  font-size: 22px;
 }
