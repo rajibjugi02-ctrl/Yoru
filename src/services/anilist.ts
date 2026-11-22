@@ -490,9 +490,26 @@ export async function getMovieAnime(
 export async function getAnimeDetails(
   id: number | string
 ): Promise<AnimeItem | null> {
-  const baseUrl = getSankaBaseUrl();
   const cleanSlug = String(id).replace(/^\/+|\/+$/g, "");
   if (!cleanSlug) return null;
+
+  // On client side, route through internal API proxy to prevent CORS & unsafe header errors
+  if (typeof window !== "undefined") {
+    try {
+      const clientRes = await fetch(`/api/anime/details?slug=${encodeURIComponent(cleanSlug)}`);
+      if (clientRes.ok) {
+        const clientJson = await clientRes.json();
+        if (clientJson.success && clientJson.data) {
+          return clientJson.data;
+        }
+      }
+    } catch (err) {
+      console.warn(`Client fetch anime details error for "${cleanSlug}":`, err);
+    }
+    return null;
+  }
+
+  const baseUrl = getSankaBaseUrl();
 
   try {
     const res = await fetch(`${baseUrl}/anime/anime/${encodeURIComponent(cleanSlug)}`, {

@@ -156,7 +156,7 @@ export const AnimeCard: React.FC<AnimeCardProps> = ({
 
       {/* Title & Genre Under Card */}
       <div className="mt-2.5 px-0.5 space-y-0.5">
-        <h4 className="text-xs md:text-sm font-semibold font-heading text-slate-200 line-clamp-1 group-hover:text-indigo-400 transition-colors">
+        <h4 className="text-xs md:text-sm font-semibold font-heading text-slate-200 line-clamp-2 group-hover:text-indigo-400 transition-colors">
           {title}
         </h4>
         <p className="text-[11px] text-slate-500 line-clamp-1">

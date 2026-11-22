@@ -20,6 +20,7 @@ import {
 } from "@/components/player/FloatingEpisodeDrawer";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { SeasonDropdown } from "@/components/anime/SeasonDropdown";
+import { slugToHumanTitle } from "@/lib/season-utils";
 import { getAnimeDetails, searchAnime } from "@/services/anilist";
 import { findBestAnimeMatch, cleanAnimeTitle } from "@/lib/scraper";
 import { useUserSettings, useWatchHistory } from "@/hooks/useStorage";
@@ -250,7 +251,7 @@ export default function WatchPage({ params }: Props) {
       anime?.title.romaji ||
       anime?.title.english ||
       anime?.title.userPreferred ||
-      `Anime ${animeId}`
+      slugToHumanTitle(animeId)
     );
   }, [anime, animeId]);
 
@@ -576,7 +577,7 @@ export default function WatchPage({ params }: Props) {
   return (
     <div
       className={cn(
-        "space-y-6 transition-colors duration-500 pt-20 md:pt-24 pb-28 md:pb-16",
+        "space-y-6 transition-colors duration-500 pt-20 md:pt-24 pb-36 md:pb-24 max-w-7xl mx-auto overflow-x-hidden",
         isFocusMode && "bg-black/95 py-4 px-2 md:px-6 rounded-3xl"
       )}
     >
@@ -704,8 +705,8 @@ export default function WatchPage({ params }: Props) {
             onSwitchProvider={handleSwitchProvider}
           />
 
-          {/* Quick Troubleshooting & Provider Switch Bar */}
-          {!isFocusMode && (
+          {/* Quick Troubleshooting & Provider Switch Bar (Hidden when player error overlay already shows switch buttons) */}
+          {!isFocusMode && (!scrapeError || customEmbedUrl) && (
             <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-amber-500/[0.07] border border-amber-500/20 text-xs backdrop-blur-xl">
               <div className="flex items-center gap-2.5 text-amber-200">
                 <AlertCircle className="w-4 h-4 shrink-0 text-amber-400" />
@@ -783,28 +784,20 @@ export default function WatchPage({ params }: Props) {
                   <h3 className="text-base font-bold font-heading text-white">
                     {animeTitle} — Episode {currentEpNum}
                   </h3>
-                  <div className="text-xs text-slate-400 mt-1 flex flex-wrap items-center gap-2">
-                    <span className="flex items-center gap-1.5">
-                      <Server className="w-3.5 h-3.5 text-indigo-400" />
+                  <div className="flex flex-wrap items-center gap-2 mt-2">
+                    <span className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-white/[0.05] border border-white/[0.08] text-slate-300 flex items-center gap-1.5">
+                      <Server className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
                       <span>
-                        Sumber:{" "}
-                        <strong className="text-white font-medium capitalize">
-                          {provider}
-                        </strong>{" "}
-                        • Server:{" "}
-                        <strong className="text-white font-medium">
-                          {activeMirror
-                            ? `${activeMirror.name} (${activeMirror.quality})`
-                            : "Sub Indo"}
-                        </strong>
+                        Sumber: <strong className="text-white capitalize">{provider}</strong>
                       </span>
                     </span>
-                    <span>•</span>
+                    <span className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-white/[0.05] border border-white/[0.08] text-slate-300">
+                      Server: <strong className="text-white">{activeMirror ? `${activeMirror.name} (${activeMirror.quality})` : "Sub Indo"}</strong>
+                    </span>
                     <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
                       Audio: JP (Sub Indo)
                     </span>
-                    <span>•</span>
-                    <span className="text-emerald-400 font-medium">
+                    <span className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                       Direct Embed Stream (Bebas Iklan)
                     </span>
                   </div>
@@ -817,8 +810,8 @@ export default function WatchPage({ params }: Props) {
                 </div>
               </div>
 
-              {/* Keyboard Shortcuts Hint Bar */}
-              <div className="pt-3 border-t border-white/[0.06] flex flex-wrap gap-4 text-[11px] text-slate-400">
+              {/* Keyboard Shortcuts Hint Bar (Desktop Only) */}
+              <div className="pt-3 border-t border-white/[0.06] hidden md:flex flex-wrap gap-4 text-[11px] text-slate-400">
                 <span className="flex items-center gap-1.5">
                   <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-slate-300 font-mono text-[10px]">
                     Spasi

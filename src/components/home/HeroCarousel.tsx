@@ -46,8 +46,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ items }) => {
     <div
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
-      style={{ position: "relative", width: "100%", minHeight: "420px", overflow: "hidden" }}
-      className="relative w-full h-[400px] sm:h-[460px] md:h-[520px] rounded-3xl overflow-hidden border border-white/[0.12] bg-[#0F1117] shadow-[0_20px_60px_rgba(0,0,0,0.8)] select-none"
+      className="relative w-full min-h-[420px] h-[55vh] md:h-[520px] rounded-3xl overflow-hidden border border-white/[0.12] bg-[#0F1117] shadow-[0_20px_60px_rgba(0,0,0,0.8)] select-none overflow-x-hidden"
     >
       {/* Specular top highlight */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent z-20" />
@@ -69,6 +68,8 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ items }) => {
               alt={title}
               fill
               priority
+              unoptimized={true}
+              referrerPolicy="no-referrer"
               sizes="100vw"
               style={{ objectFit: "cover", objectPosition: "center" }}
               className="object-cover object-center"
@@ -78,9 +79,9 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ items }) => {
           )}
 
           {/* Deep Cinematic Gradients into #08090C */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#08090C] via-[#08090C]/80 to-transparent w-full md:w-3/4" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#08090C] via-[#08090C]/60 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#08090C]/40 via-transparent to-[#08090C]" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#08090C] via-[#08090C]/85 to-transparent w-full md:w-3/4" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#08090C] via-[#08090C]/70 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#08090C]/50 via-transparent to-[#08090C]" />
         </motion.div>
       </AnimatePresence>
 

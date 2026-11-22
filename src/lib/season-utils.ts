@@ -19,6 +19,68 @@ export interface FranchiseGroup<T = any> {
 }
 
 /**
+ * Convert arbitrary or abbreviated anime slugs into clean human-readable titles
+ * e.g. "blk-clver-s2-sub-indo" -> "Black Clover Season 2"
+ * e.g. "jjkn-sub-indo" -> "Jujutsu Kaisen"
+ */
+export function slugToHumanTitle(rawSlug: string): string {
+  if (!rawSlug) return "Anime";
+  let s = String(rawSlug)
+    .replace(/^anime\s+/i, "")
+    .replace(/\/+$/, "")
+    .trim();
+
+  // Strip sub indo / episode suffixes
+  s = s
+    .replace(/-subtitle-indonesia/gi, "")
+    .replace(/-sub-indo/gi, "")
+    .replace(/-episode-\d+/gi, "")
+    .replace(/-eps-\d+/gi, "");
+
+  // Known slug abbreviations dictionary
+  const known: Record<string, string> = {
+    "blk-clver": "Black Clover",
+    "black-clover": "Black Clover",
+    "jjk": "Jujutsu Kaisen",
+    "jjkn": "Jujutsu Kaisen",
+    "kimetsu-yaiba": "Kimetsu no Yaiba",
+    "aot": "Shingeki no Kyojin",
+    "snk": "Shingeki no Kyojin",
+    "mha": "Boku no Hero Academia",
+    "boku-no-hero": "Boku no Hero Academia",
+    "op": "One Piece",
+    "1piece": "One Piece",
+    "one-piece": "One Piece",
+    "hxh": "Hunter x Hunter",
+    "naruto-shippuuden": "Naruto Shippuden",
+  };
+
+  for (const [key, val] of Object.entries(known)) {
+    if (s.toLowerCase() === key || s.toLowerCase().startsWith(key + "-")) {
+      const rest = s.slice(key.length);
+      s = val + rest;
+      break;
+    }
+  }
+
+  s = s.replace(/[-_]s(\d+)(?:[-_]|$)/gi, (_, n) => ` Season ${n} `);
+  s = s.replace(/[-_]season[-_](\d+)(?:[-_]|$)/gi, (_, n) => ` Season ${n} `);
+  s = s.replace(/[-_]part[-_](\d+)(?:[-_]|$)/gi, (_, n) => ` Part ${n} `);
+  s = s.replace(/[-_]cour[-_](\d+)(?:[-_]|$)/gi, (_, n) => ` Cour ${n} `);
+  s = s.replace(/[-_]movie(?:[-_]|$)/gi, " Movie ");
+  s = s.replace(/[-_]/g, " ").replace(/\s+/g, " ").trim();
+
+  return s
+    .split(" ")
+    .map((w) => {
+      const lower = w.toLowerCase();
+      if (lower === "no" || lower === "na" || lower === "wa" || lower === "ga" || lower === "o" || lower === "to") return lower;
+      return w.charAt(0).toUpperCase() + w.slice(1);
+    })
+    .join(" ");
+}
+
+/**
  * Remove redundant sub/format metadata
  */
 export function cleanRawTitle(rawTitle: string): string {

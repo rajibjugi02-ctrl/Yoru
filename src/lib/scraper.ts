@@ -1,3 +1,5 @@
+import { slugToHumanTitle } from "./season-utils";
+
 export const DEFAULT_USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36";
 
@@ -809,99 +811,39 @@ export async function findSamehadakuEpisodeSlug(
   episodeNumber: number
 ): Promise<string | null> {
   const baseUrl = getSankaBaseUrl();
-  const cleanTitle = cleanAnimeTitle(title);
+  // Ensure title is human-readable, not a raw slug or "Anime blk-clver-s2..."
+  const humanTitle = slugToHumanTitle(title);
+  const cleanTitle = cleanAnimeTitle(humanTitle);
   if (!cleanTitle) return null;
-
-  // Step 1: Direct canonical slug prediction (fastest & highly accurate on Samehadaku)
-  const baseCandidates = new Set<string>();
-
-  const base1 = cleanTitle
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-  if (base1) baseCandidates.add(base1);
-
-  // Slug without trailing/embedded 4-digit year (e.g. hunter-x-hunter-2011 -> hunter-x-hunter)
-  const baseNoYear = base1.replace(/-\d{4}$/, "").replace(/-\d{4}-/g, "-");
-  if (baseNoYear) baseCandidates.add(baseNoYear);
-
-  const baseExtract = extractBaseTitle(title)
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-  if (baseExtract) baseCandidates.add(baseExtract);
-
-  for (const baseSlug of baseCandidates) {
-    const candidates = [
-      `${baseSlug}-episode-${episodeNumber}`,
-      `${baseSlug}-eps-${episodeNumber}`,
-    ];
-
-    for (const candidate of candidates) {
-      try {
-        const testRes = await fetch(
-          `${baseUrl}/anime/samehadaku/episode/${encodeURIComponent(candidate)}`,
-          {
-            headers: { "User-Agent": DEFAULT_USER_AGENT, Accept: "application/json" },
-            signal: AbortSignal.timeout(5000),
-          }
-        );
-        if (testRes.ok) {
-          return candidate;
-        }
-      } catch {}
-    }
-  }
 
   const epRegex = new RegExp(`(?:episode|eps|-)\\s*0*${episodeNumber}(?:[^-0-9]|$)`, "i");
 
-  // Step 2: Search for specific episode query
+  // Step 1 (Fastest & most accurate): Search Samehadaku for clean title (e.g. "Black Clover Season 2")
   try {
-    const q1 = `${cleanTitle} episode ${episodeNumber}`;
-    const res1 = await fetch(`${baseUrl}/anime/samehadaku/search?q=${encodeURIComponent(q1)}`, {
+    const res = await fetch(`${baseUrl}/anime/samehadaku/search?q=${encodeURIComponent(cleanTitle)}`, {
       headers: { "User-Agent": DEFAULT_USER_AGENT, Accept: "application/json" },
-      signal: AbortSignal.timeout(6000),
+      signal: AbortSignal.timeout(4500),
     });
-    if (res1.ok) {
-      const data1 = await res1.json();
-      const list1: any[] = data1.data?.animeList || [];
-      const directMatch = list1.find((item) => {
-        const t = (item.title || "").toLowerCase();
-        const id = (item.animeId || "").toLowerCase();
-        return (epRegex.test(t) || epRegex.test(id)) && !t.includes("batch");
-      });
-      if (directMatch?.animeId) return directMatch.animeId;
-    }
-  } catch (e) {
-    console.warn("Samehadaku specific episode search failed:", e);
-  }
-
-  // Step 3: Search for base anime title and inspect episodeList
-  try {
-    const res2 = await fetch(`${baseUrl}/anime/samehadaku/search?q=${encodeURIComponent(cleanTitle)}`, {
-      headers: { "User-Agent": DEFAULT_USER_AGENT, Accept: "application/json" },
-      signal: AbortSignal.timeout(6000),
-    });
-    if (res2.ok) {
-      const data2 = await res2.json();
-      const list2: any[] = data2.data?.animeList || [];
+    if (res.ok) {
+      const data = await res.json();
+      const list: any[] = data.data?.animeList || [];
 
       // Check if any search result is directly this episode
-      const direct = list2.find(
+      const direct = list.find(
         (item) => (epRegex.test(item.title || "") || epRegex.test(item.animeId || "")) && !item.title?.toLowerCase().includes("batch")
       );
       if (direct?.animeId) return direct.animeId;
 
       // Check series candidate
-      const seriesCandidates = list2.filter(
+      const seriesCandidates = list.filter(
         (item) => !item.title?.toLowerCase().includes("batch") && !item.title?.toLowerCase().includes("episode")
       );
-      const bestSeries = seriesCandidates[0] || list2[0];
+      const bestSeries = seriesCandidates[0] || list[0];
 
       if (bestSeries?.animeId) {
         const detailRes = await fetch(`${baseUrl}/anime/samehadaku/anime/${encodeURIComponent(bestSeries.animeId)}`, {
           headers: { "User-Agent": DEFAULT_USER_AGENT, Accept: "application/json" },
-          signal: AbortSignal.timeout(6000),
+          signal: AbortSignal.timeout(4500),
         });
         if (detailRes.ok) {
           const detailData = await detailRes.json();
@@ -917,7 +859,34 @@ export async function findSamehadakuEpisodeSlug(
       }
     }
   } catch (e) {
-    console.warn("Samehadaku series search failed:", e);
+    console.warn("Samehadaku search failed:", e);
+  }
+
+  // Step 2: Canonical slug prediction fallback (tight 3s timeout)
+  const baseCandidates = new Set<string>();
+  const base1 = cleanTitle
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  if (base1) baseCandidates.add(base1);
+
+  const baseNoYear = base1.replace(/-\d{4}$/, "").replace(/-\d{4}-/g, "-");
+  if (baseNoYear) baseCandidates.add(baseNoYear);
+
+  for (const baseSlug of Array.from(baseCandidates).slice(0, 2)) {
+    const candidate = `${baseSlug}-episode-${episodeNumber}`;
+    try {
+      const testRes = await fetch(
+        `${baseUrl}/anime/samehadaku/episode/${encodeURIComponent(candidate)}`,
+        {
+          headers: { "User-Agent": DEFAULT_USER_AGENT, Accept: "application/json" },
+          signal: AbortSignal.timeout(3000),
+        }
+      );
+      if (testRes.ok) {
+        return candidate;
+      }
+    } catch {}
   }
 
   return null;
@@ -993,7 +962,8 @@ export async function findKuramanimeEpisodeStream(
   episodeNumber: number
 ): Promise<ScrapeWatchData> {
   const baseUrl = getSankaBaseUrl();
-  const cleanTitle = cleanAnimeTitle(title);
+  const humanTitle = slugToHumanTitle(title);
+  const cleanTitle = cleanAnimeTitle(humanTitle);
   if (!cleanTitle) {
     return {
       success: false,
@@ -1009,12 +979,12 @@ export async function findKuramanimeEpisodeStream(
   }
 
   try {
-    // Step 1: Search Kuramanime via SankaVollereii
+    // Step 1: Search Kuramanime via SankaVollereii (fast 5s timeout)
     const searchRes = await fetch(
       `${baseUrl}/anime/kura/search/${encodeURIComponent(cleanTitle)}`,
       {
         headers: { "User-Agent": DEFAULT_USER_AGENT, Accept: "application/json" },
-        signal: AbortSignal.timeout(8000),
+        signal: AbortSignal.timeout(5000),
       }
     );
 
@@ -1106,7 +1076,7 @@ export async function findKuramanimeEpisodeStream(
     const watchEndpoint = `${baseUrl}/anime/kura/watch/${encodeURIComponent(kuraId)}/${encodeURIComponent(kuraSlug)}/${episodeNumber}`;
     const watchRes = await fetch(watchEndpoint, {
       headers: { "User-Agent": DEFAULT_USER_AGENT, Accept: "application/json" },
-      signal: AbortSignal.timeout(10000),
+      signal: AbortSignal.timeout(5000),
     });
 
     if (!watchRes.ok) {

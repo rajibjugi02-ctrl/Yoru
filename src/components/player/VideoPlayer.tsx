@@ -538,7 +538,12 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         {/* Main Player Frame */}
         <div
           ref={containerRef}
-          className="relative z-10 w-full aspect-video rounded-3xl overflow-hidden bg-black border border-white/[0.14] shadow-[0_25px_60px_rgba(0,0,0,0.85)] flex items-center justify-center group select-none"
+          className={cn(
+            "relative z-10 w-full rounded-3xl overflow-hidden bg-black border border-white/[0.14] shadow-[0_25px_60px_rgba(0,0,0,0.85)] flex items-center justify-center group select-none",
+            scrapeError && !customEmbedUrl
+              ? "min-h-[320px] md:aspect-video py-6 px-4"
+              : "aspect-video"
+          )}
         >
           {/* Loading Stream Overlay */}
           {isLoadingStream && (
@@ -546,36 +551,36 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
               <RefreshCw className="w-8 h-8 text-indigo-400 animate-spin" />
               <div className="text-center space-y-1">
                 <p className="text-sm font-semibold font-heading text-white">
-                  Menghubungkan ke Server Vidhide / Mega...
+                  Menghubungkan ke Server Sub Indo...
                 </p>
                 <p className="text-xs text-slate-400">
-                  Mengambil video Sub Indo kualitas terbaik
+                  Mengambil video kualitas terbaik
                 </p>
               </div>
             </div>
           )}
 
-          {/* Scrape Error Overlay */}
+          {/* Scrape Error Overlay (Responsive & Never Clipped on Mobile) */}
           {scrapeError && !customEmbedUrl && (
-            <div className="absolute inset-0 z-30 bg-[#08090C]/95 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-center max-w-lg mx-auto">
-              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-3">
-                <AlertCircle className="w-6 h-6 text-amber-400" />
+            <div className="absolute inset-0 z-30 bg-[#08090C]/95 backdrop-blur-xl flex flex-col items-center justify-center p-4 sm:p-6 text-center max-w-lg mx-auto overflow-y-auto custom-scrollbar">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-2.5 shrink-0">
+                <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400" />
               </div>
-              <h3 className="text-base font-bold font-heading text-white mb-1">
+              <h3 className="text-sm sm:text-base font-bold font-heading text-white mb-1">
                 Server Belum Tersedia
               </h3>
-              <p className="text-xs text-slate-300 mb-4 max-w-md">
+              <p className="text-xs text-slate-300 mb-3.5 max-w-md">
                 {scrapeError.message ||
                   "Server stream belum tersedia untuk episode ini."}
               </p>
-              <div className="flex flex-wrap items-center justify-center gap-2.5">
+              <div className="flex flex-wrap items-center justify-center gap-2">
                 {onSwitchProvider ? (
                   <>
                     {provider !== "otakudesu" && (
                       <button
                         type="button"
                         onClick={() => onSwitchProvider("otakudesu")}
-                        className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+                        className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white shadow-md transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
                       >
                         <RefreshCw className="w-3.5 h-3.5" />
                         Beralih ke Otakudesu (1-Klik)
@@ -585,7 +590,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                       <button
                         type="button"
                         onClick={() => onSwitchProvider("samehadaku")}
-                        className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-xs font-semibold text-black shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+                        className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-xs font-semibold text-black shadow-md transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
                       >
                         <RefreshCw className="w-3.5 h-3.5" />
                         Beralih ke Samehadaku (1-Klik)
@@ -595,7 +600,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                       <button
                         type="button"
                         onClick={() => onSwitchProvider("kuramanime")}
-                        className="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-xs font-semibold text-white shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+                        className="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-xs font-semibold text-white shadow-md transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
                       >
                         <RefreshCw className="w-3.5 h-3.5" />
                         Beralih ke Kuramanime (1-Klik)
@@ -606,7 +611,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                   <button
                     type="button"
                     onClick={onSwitchToBackup}
-                    className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-xs font-semibold text-black shadow-[0_0_15px_rgba(245,158,11,0.4)] transition-all flex items-center gap-1.5 cursor-pointer"
+                    className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-xs font-semibold text-black shadow-[0_0_15px_rgba(245,158,11,0.4)] transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
                     {provider === "samehadaku"
@@ -619,7 +624,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                   <button
                     type="button"
                     onClick={onRetryScrape}
-                    className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-semibold text-white transition-all flex items-center gap-1.5 cursor-pointer"
+                    className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-semibold text-white transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
                   >
                     <RefreshCw className="w-3.5 h-3.5" /> Coba Lagi
                   </button>
@@ -641,7 +646,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                     : "w-full h-full"
                 )}
                 allowFullScreen
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allow="autoplay; fullscreen; encrypted-media; picture-in-picture; accelerometer; clipboard-write; gyroscope; web-share"
                 referrerPolicy="no-referrer"
               />
             </div>
